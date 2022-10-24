@@ -3,8 +3,8 @@ package com.sunnyweather.android.ui.search
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.sunnyweather.android.logic.Repository
 import com.sunnyweather.android.logic.model.Owner
+import com.sunnyweather.android.logic.repository.Repository
 
 class SearchViewModel : ViewModel(){
     class SearchRequest (val platform: String, val keyWords: String, val isLive: String)

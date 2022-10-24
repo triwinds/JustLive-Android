@@ -3,9 +3,9 @@ package com.sunnyweather.android.ui.liveRoom
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.sunnyweather.android.logic.Repository
 import com.sunnyweather.android.logic.danmu.DanmuService
 import com.sunnyweather.android.logic.model.DanmuSetting
+import com.sunnyweather.android.logic.repository.Repository
 
 class LiveRoomViewModel : ViewModel() {
     class UrlRequest (val platform: String, val roomId: String)

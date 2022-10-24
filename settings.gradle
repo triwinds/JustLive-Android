@@ -7,7 +7,7 @@ dependencyResolutionManagement {
         maven {
             allowInsecureProtocol = true
             url 'http://4thline.org/m2' }
-        maven { url "https://jitpack.io" }// Warning: this repository is going to shut down soon
+        maven { url "https://www.jitpack.io" }// Warning: this repository is going to shut down soon
     }
 }
 rootProject.name = "SunnyWeather"

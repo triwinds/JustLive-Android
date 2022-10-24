@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.drake.statelayout.StateLayout
-import com.sunnyweather.android.logic.Repository
 import com.sunnyweather.android.logic.model.RoomInfo
+import com.sunnyweather.android.logic.repository.Repository
 
 class HomeViewModel(val platform: String) : ViewModel() {
     class RecommendInfo(val platform: String, val areaType: String, val area: String, val page: Int, val size: Int)

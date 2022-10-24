@@ -1,19 +1,19 @@
-package com.sunnyweather.android.logic
+package com.sunnyweather.android.logic.repository
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.liveData
 import com.google.gson.internal.LinkedTreeMap
-import com.sunnyweather.android.SunnyWeatherApplication
 import com.sunnyweather.android.SunnyWeatherApplication.Companion.context
 import com.sunnyweather.android.logic.model.RoomInfo
+import com.sunnyweather.android.logic.model.UrlsResponse
 import com.sunnyweather.android.logic.model.UserInfo
 import com.sunnyweather.android.logic.network.LiveNetwork
 import kotlinx.coroutines.Dispatchers
-import java.lang.Exception
+
 
 object Repository {
+    val bilibiliRepository = BilibiliRepository()
     fun getRecommend(page: Int, size: Int) = liveData(Dispatchers.IO){
         val result = try {
             val liveResponse = LiveNetwork.getRecommend(page, size)
@@ -102,34 +102,43 @@ object Repository {
         }
         emit(result)
     }
+
     fun getRealUrl(platform: String, roomId: String) = liveData(Dispatchers.IO){
         val result = try {
-            val liveResponse = LiveNetwork.getRealUrl(platform, roomId)
-            if (liveResponse.code == "200") {
-                val rooms = liveResponse.data
-                val resultRooms = LinkedTreeMap<String, String>()
-                if (rooms.containsKey("OD")) {
-                    resultRooms["原画"] = rooms["OD"]
-                }
-                if (rooms.containsKey("HD")) {
-                    resultRooms["超清"] = rooms["HD"]
-                }
-                if (rooms.containsKey("SD")) {
-                    resultRooms["高清"] = rooms["SD"]
-                }
-                if (rooms.containsKey("LD")) {
-                    resultRooms["清晰"] = rooms["LD"]
-                }
-                if (rooms.containsKey("FD")) {
-                    resultRooms["流畅"] = rooms["FD"]
-                }
-                Result.success(resultRooms)
-            } else if (liveResponse.code == "400") {
-                val rooms = liveResponse.message
-                Result.success(rooms)
+            var liveResponse: UrlsResponse = if ("bilibili".equals(platform, true)) {
+                bilibiliRepository.getBilibiliRealUrl(roomId)
             } else {
-                "请求异常，请联系作者".showToast(context)
-                Result.failure(RuntimeException("response status is ${liveResponse.message}"))
+                LiveNetwork.getRealUrl(platform, roomId)
+            }
+            when (liveResponse.code) {
+                "200" -> {
+                    val rooms = liveResponse.data
+                    val resultRooms = LinkedTreeMap<String, String>()
+                    if (rooms.containsKey("OD")) {
+                        resultRooms["原画"] = rooms["OD"]
+                    }
+                    if (rooms.containsKey("HD")) {
+                        resultRooms["超清"] = rooms["HD"]
+                    }
+                    if (rooms.containsKey("SD")) {
+                        resultRooms["高清"] = rooms["SD"]
+                    }
+                    if (rooms.containsKey("LD")) {
+                        resultRooms["清晰"] = rooms["LD"]
+                    }
+                    if (rooms.containsKey("FD")) {
+                        resultRooms["流畅"] = rooms["FD"]
+                    }
+                    Result.success(resultRooms)
+                }
+                "400" -> {
+                    val rooms = liveResponse.message
+                    Result.success(rooms)
+                }
+                else -> {
+                    "请求异常，请联系作者".showToast(context)
+                    Result.failure(RuntimeException("response status is ${liveResponse.message}"))
+                }
             }
         } catch (e: Exception) {
             Result.failure<List<RoomInfo>>(e)

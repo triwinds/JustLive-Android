@@ -3,9 +3,8 @@ package com.sunnyweather.android.ui.login
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.sunnyweather.android.logic.Repository
-import com.sunnyweather.android.logic.model.UpdateInfo
 import com.sunnyweather.android.logic.model.UserInfo
+import com.sunnyweather.android.logic.repository.Repository
 
 class LoginViewModel : ViewModel() {
     data class LoginRequest(val username: String, val password: String)

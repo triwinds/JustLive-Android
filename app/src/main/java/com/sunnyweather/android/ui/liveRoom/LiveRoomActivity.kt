@@ -1,63 +1,58 @@
 package com.sunnyweather.android.ui.liveRoom
 
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Point
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.google.gson.internal.LinkedTreeMap
-import com.sunnyweather.android.R
-import com.sunnyweather.android.SunnyWeatherApplication.Companion.context
-import com.sunnyweather.android.logic.model.RoomInfo
-import kotlinx.android.synthetic.main.activity_liveroom.*
-import xyz.doikki.videocontroller.StandardVideoController
-import xyz.doikki.videocontroller.component.*
-import xyz.doikki.videoplayer.exo.ExoMediaPlayer
-import xyz.doikki.videoplayer.player.VideoViewManager
-import xyz.doikki.videoplayer.util.PlayerUtils
-import android.util.DisplayMetrics
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.sunnyweather.android.logic.model.DanmuSetting
-import com.sunnyweather.android.util.dkplayer.*
-import com.google.gson.Gson
-import com.google.gson.JsonParser
-import com.sunnyweather.android.SunnyWeatherApplication
-import com.sunnyweather.android.ui.login.LoginActivity
-import java.lang.Exception
-import android.view.WindowManager
-
-import android.app.Activity
-import android.net.Uri
-import android.os.CountDownTimer
-import android.util.Log
-import android.view.Window
-import androidx.preference.PreferenceManager
-import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.TypeReference
 import com.blankj.utilcode.util.*
-import com.blankj.utilcode.util.ScreenUtils.toggleFullScreen
 import com.blankj.utilcode.util.Utils
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.drake.net.Get
 import com.drake.net.utils.scopeNetLife
-
-import com.hjq.permissions.XXPermissions
-
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.gson.Gson
+import com.google.gson.JsonParser
+import com.google.gson.internal.LinkedTreeMap
 import com.hjq.permissions.OnPermissionCallback
 import com.hjq.permissions.Permission
+import com.hjq.permissions.XXPermissions
+import com.sunnyweather.android.R
+import com.sunnyweather.android.SunnyWeatherApplication
+import com.sunnyweather.android.SunnyWeatherApplication.Companion.context
+import com.sunnyweather.android.logic.model.DanmuSetting
+import com.sunnyweather.android.logic.model.RoomInfo
 import com.sunnyweather.android.logic.service.ForegroundService
+import com.sunnyweather.android.ui.login.LoginActivity
+import com.sunnyweather.android.util.dkplayer.*
+import kotlinx.android.synthetic.main.activity_liveroom.*
+import xyz.doikki.videocontroller.component.CompleteView
+import xyz.doikki.videocontroller.component.ErrorView
+import xyz.doikki.videocontroller.component.PrepareView
+import xyz.doikki.videoplayer.exo.ExoMediaPlayer
 import xyz.doikki.videoplayer.player.VideoView
+import xyz.doikki.videoplayer.player.VideoViewManager
+import xyz.doikki.videoplayer.util.PlayerUtils
 
 class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, YJLiveControlView.OnRateSwitchListener, DanmuSettingFragment.OnDanmuSettingChangedListener {
     private val viewModel by lazy { ViewModelProvider(this).get(LiveRoomViewModel::class.java) }
@@ -83,7 +78,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     open fun getUrl(): String {
-        return playerUrl;
+        return playerUrl
     }
 
     fun startFullScreen() {
@@ -131,7 +126,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
         }
         BarUtils.transparentStatusBar(this)
         BarUtils.addMarginTopEqualStatusBarHeight(liveRoom_main)
-        BarUtils.setStatusBarColor(this, getResources().getColor(R.color.black))
+        BarUtils.setStatusBarColor(this, resources.getColor(R.color.black))
         startCountdown()
         //设置滑动到底部的动画时间
         val linearLayoutManager: LinearLayoutManager = object : LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false) {
@@ -235,20 +230,21 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
             toWeb(platform, roomId)
         }
         //弹幕更新
-        viewModel.danmuNum.observe(this, {
-            if (viewModel.danmuList.size > 0){
-                mMyDanmakuView.addDanmaku(viewModel.danmuList.last()?.content)
+        viewModel.danmuNum.observe(this) {
+            if (viewModel.danmuList.size > 0) {
+                mMyDanmakuView.addDanmaku(viewModel.danmuList.last().content)
                 if (updateList) {
                     adapter.addData(viewModel.danmuList.last())
                     if (toBottom) {
-                        danMu_recyclerView.scrollToPosition(adapter.itemCount-1)
+                        danMu_recyclerView.scrollToPosition(adapter.itemCount - 1)
                     }
                 }
             }
-        })
+        }
         //获取到直播源信息
-        viewModel.urlResponseData.observe(this, {result ->
-            val urls : LinkedTreeMap<String, String> = result.getOrNull() as LinkedTreeMap<String, String>
+        viewModel.urlResponseData.observe(this) { result ->
+            val urls: LinkedTreeMap<String, String> =
+                result.getOrNull() as LinkedTreeMap<String, String>
             if (urls != null && urls.size > 0) {
                 videoView?.setVideoController(controller) //设置控制器
                 var sharedPref = this.getSharedPreferences("JustLive", Context.MODE_PRIVATE)
@@ -267,7 +263,8 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                 val isMobileData = NetworkUtils.isMobileData()
                 if (isMobileData) {
                     Toast.makeText(context, "正在使用流量", Toast.LENGTH_SHORT).show()
-                    val defaultDefinition = sharedPreferences.getString("default_definition_4G", "原画")
+                    val defaultDefinition =
+                        sharedPreferences.getString("default_definition_4G", "原画")
                     if (urls.containsKey(defaultDefinition)) {
                         mDefinitionControlView?.setData(urls, defaultDefinition)
                         playerUrl = urls[defaultDefinition]!!
@@ -283,7 +280,8 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                         }
                     }
                 } else {
-                    val defaultDefinition = sharedPreferences.getString("default_definition_wifi", "原画")
+                    val defaultDefinition =
+                        sharedPreferences.getString("default_definition_wifi", "原画")
 
                     if (urls.containsKey(defaultDefinition)) {
                         mDefinitionControlView?.setData(urls, defaultDefinition)
@@ -302,11 +300,11 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                 }
                 videoView?.start() //开始播放，不调用则不自动播放
             }
-        })
+        }
 //        tinyScreen.setOnClickListener {
 //            videoView!!.startTinyScreen()
 //        }
-        viewModel.followResponseLiveDate.observe(this, {result ->
+        viewModel.followResponseLiveDate.observe(this) { result ->
             val result = result.getOrNull()
             if (result is String) {
                 Toast.makeText(this, result, Toast.LENGTH_SHORT).show()
@@ -318,9 +316,9 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                     isFollowed = false
                 }
             }
-        })
+        }
         //获取到房间信息
-        viewModel.roomInfoResponseData.observe(this, {result ->
+        viewModel.roomInfoResponseData.observe(this) { result ->
             val roomInfo = result.getOrNull()
             if (roomInfo is RoomInfo) {
                 //关注按钮
@@ -328,9 +326,17 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                     follow_roomInfo.setOnClickListener {
                         if (SunnyWeatherApplication.isLogin.value!!) {
                             if (isFollowed) {
-                                viewModel.unFollow(roomInfo.platForm, roomInfo.roomId, SunnyWeatherApplication.userInfo!!.uid)
+                                viewModel.unFollow(
+                                    roomInfo.platForm,
+                                    roomInfo.roomId,
+                                    SunnyWeatherApplication.userInfo!!.uid
+                                )
                             } else {
-                                viewModel.follow(roomInfo.platForm, roomInfo.roomId, SunnyWeatherApplication.userInfo!!.uid)
+                                viewModel.follow(
+                                    roomInfo.platForm,
+                                    roomInfo.roomId,
+                                    SunnyWeatherApplication.userInfo!!.uid
+                                )
                             }
                         } else {
                             MaterialAlertDialogBuilder(this)
@@ -350,7 +356,8 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                     //提示弹幕不支持
                     if (roomInfo.platForm == "egame" || roomInfo.platForm == "cc") {
                         danmu_not_support.visibility = View.VISIBLE
-                        danmu_not_support.text = "暂不支持${SunnyWeatherApplication.platformName(roomInfo.platForm)}弹幕"
+                        danmu_not_support.text =
+                            "暂不支持${SunnyWeatherApplication.platformName(roomInfo.platForm)}弹幕"
                     }
                     //未开播
                     if (roomInfo.isLive == 0) {
@@ -360,7 +367,8 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                             changeRoomInfoVisible(roomInfo_liveRoom.layoutParams.height == 0)
                         }
                     } else {
-                        videoView = VideoViewManager.instance().get(platform + roomId) as VideoView<ExoMediaPlayer>?
+                        videoView = VideoViewManager.instance()
+                            .get(platform + roomId) as VideoView<ExoMediaPlayer>?
                         if (mPIPManager.isStartFloatWindow) {
                             mPIPManager.stopFloatWindow()
 //                            controller?.setPlayerState(videoView!!.currentPlayerState)
@@ -377,10 +385,12 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                         DrawableTransitionOptions.withCrossFade()
                     ).into(ownerPic_roomInfo)
                     if (ScreenUtils.isLandscape()) {
-                        ownerName_roomInfo.text = SunnyWeatherApplication.platformName(roomInfo.platForm) + "·" + roomInfo.ownerName
+                        ownerName_roomInfo.text =
+                            SunnyWeatherApplication.platformName(roomInfo.platForm) + "·" + roomInfo.ownerName
                         roomName_roomInfo.text = roomInfo.roomName
                     } else {
-                        ownerName_roomInfo.text = SunnyWeatherApplication.platformName(roomInfo.platForm)
+                        ownerName_roomInfo.text =
+                            SunnyWeatherApplication.platformName(roomInfo.platForm)
                         roomName_roomInfo.text = roomInfo.ownerName
                         liveRoom_bar_txt.text = roomInfo.roomName
                     }
@@ -392,7 +402,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                 Toast.makeText(this, roomInfo, Toast.LENGTH_SHORT).show()
                 result.exceptionOrNull()?.printStackTrace()
             }
-        })
+        }
     }
 
     override fun onStart() {
@@ -484,7 +494,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     override fun onDestroy() {
         super.onDestroy()
         AppUtils.unregisterAppStatusChangedListener(this)
-        mPIPManager!!.reset()
+        mPIPManager.reset()
         if (countDownTimer != null) {
             countDownTimer?.cancel()
             ToastUtils.showShort("定时计时结束")

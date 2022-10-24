@@ -3,8 +3,8 @@ package com.sunnyweather.android.ui.follows
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.sunnyweather.android.logic.Repository
 import com.sunnyweather.android.logic.model.RoomInfo
+import com.sunnyweather.android.logic.repository.Repository
 
 class FollowViewModel : ViewModel(){
     private val uidLiveData = MutableLiveData<String>()
@@ -18,7 +18,7 @@ class FollowViewModel : ViewModel(){
 
     fun getRoomsOn(uid: String?) {
         if(uid != null) {
-            uidLiveData.value = uid!!
+            uidLiveData.value = uid
         }
     }
 
