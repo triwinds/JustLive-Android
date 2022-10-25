@@ -42,6 +42,7 @@ import com.sunnyweather.android.SunnyWeatherApplication
 import com.sunnyweather.android.SunnyWeatherApplication.Companion.context
 import com.sunnyweather.android.logic.model.DanmuSetting
 import com.sunnyweather.android.logic.model.RoomInfo
+import com.sunnyweather.android.logic.repository.BilibiliRepository
 import com.sunnyweather.android.logic.service.ForegroundService
 import com.sunnyweather.android.ui.login.LoginActivity
 import com.sunnyweather.android.util.dkplayer.*
@@ -77,6 +78,8 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     private val definitionArray = arrayOf("清晰", "流畅", "高清", "超清", "原画")
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    private val biliRepository = BilibiliRepository()
+
     open fun getUrl(): String {
         return playerUrl
     }
@@ -94,6 +97,14 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
         mMyDanmakuView.hide()
         toBottom = true
         updateList = true
+    }
+
+    fun setVideoUrl(url: String?) {
+        if (platform == "bilibili" && url!!.contains(".flv?")) {
+            videoView?.setUrl(url, biliRepository.getBilibiliFlvHeaders(roomId))
+        } else {
+            videoView?.setUrl(url)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -268,13 +279,13 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                     if (urls.containsKey(defaultDefinition)) {
                         mDefinitionControlView?.setData(urls, defaultDefinition)
                         playerUrl = urls[defaultDefinition]!!
-                        videoView?.setUrl(urls[defaultDefinition]) //设置视频地址
+                        setVideoUrl(urls[defaultDefinition])  //设置视频地址
                     } else {
                         for (item in definitionArray) {
                             if (urls.containsKey(item)) {
                                 mDefinitionControlView?.setData(urls, item)
                                 playerUrl = urls[item]!!
-                                videoView?.setUrl(urls[item]) //设置视频地址
+                                setVideoUrl(urls[item]) //设置视频地址
                                 break
                             }
                         }
@@ -286,13 +297,13 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                     if (urls.containsKey(defaultDefinition)) {
                         mDefinitionControlView?.setData(urls, defaultDefinition)
                         playerUrl = urls[defaultDefinition]!!
-                        videoView?.setUrl(urls[defaultDefinition]) //设置视频地址
+                        setVideoUrl(urls[defaultDefinition]) //设置视频地址
                     } else {
                         for (item in definitionArray) {
                             if (urls.containsKey(item)) {
                                 mDefinitionControlView?.setData(urls, item)
                                 playerUrl = urls[item]!!
-                                videoView?.setUrl(urls[item]) //设置视频地址
+                                setVideoUrl(urls[item]) //设置视频地址
                                 break
                             }
                         }
@@ -514,7 +525,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
             Log.i("test", url)
         }
         playerUrl = url!!
-        videoView?.setUrl(url)
+        setVideoUrl(url)
         videoView?.replay(true)
     }
 
