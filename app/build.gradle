@@ -7,6 +7,14 @@ apply plugin: "kotlin-kapt"
 apply plugin: 'kotlin-android'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('../mykey.jks')
+            storePassword '123456'
+            keyPassword '123456'
+            keyAlias 'key0'
+        }
+    }
     compileSdk 31
     buildFeatures.dataBinding = true
 
@@ -15,7 +23,7 @@ android {
         minSdk 21
         targetSdk 30
         versionCode 19
-        versionName "0.2.8-fix1"
+        versionName "0.2.8-fix2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -32,6 +40,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
