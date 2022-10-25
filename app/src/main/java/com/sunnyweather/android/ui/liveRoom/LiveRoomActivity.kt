@@ -77,6 +77,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     private var isFirstGetInfo = true
     private val definitionArray = arrayOf("清晰", "流畅", "高清", "超清", "原画")
     private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private var playerInitFlag = false
 
     private val biliRepository = BilibiliRepository()
 
@@ -257,18 +258,19 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
             val urls: LinkedTreeMap<String, String> =
                 result.getOrNull() as LinkedTreeMap<String, String>
             if (urls != null && urls.size > 0) {
-                videoView?.setVideoController(controller) //设置控制器
-                var sharedPref = this.getSharedPreferences("JustLive", Context.MODE_PRIVATE)
-
-                when (sharedPref.getInt("playerSize", R.id.radio_button_1)) {
-                    R.id.radio_button_1 -> {
-                        changeVideoSize(VideoView.SCREEN_SCALE_DEFAULT)
-                    }
-                    R.id.radio_button_2 -> {
-                        changeVideoSize(VideoView.SCREEN_SCALE_MATCH_PARENT)
-                    }
-                    R.id.radio_button_3 -> {
-                        changeVideoSize(VideoView.SCREEN_SCALE_CENTER_CROP)
+                if (!playerInitFlag) {
+                    videoView?.setVideoController(controller) //设置控制器
+                    var sharedPref = this.getSharedPreferences("JustLive", Context.MODE_PRIVATE)
+                    when (sharedPref.getInt("playerSize", R.id.radio_button_1)) {
+                        R.id.radio_button_1 -> {
+                            changeVideoSize(VideoView.SCREEN_SCALE_DEFAULT)
+                        }
+                        R.id.radio_button_2 -> {
+                            changeVideoSize(VideoView.SCREEN_SCALE_MATCH_PARENT)
+                        }
+                        R.id.radio_button_3 -> {
+                            changeVideoSize(VideoView.SCREEN_SCALE_CENTER_CROP)
+                        }
                     }
                 }
                 val isMobileData = NetworkUtils.isMobileData()
@@ -309,7 +311,12 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
                         }
                     }
                 }
-                videoView?.start() //开始播放，不调用则不自动播放
+                if (playerInitFlag) {
+                    videoView?.replay(true)
+                } else {
+                    videoView?.start() //开始播放，不调用则不自动播放
+                    playerInitFlag = true
+                }
             }
         }
 //        tinyScreen.setOnClickListener {
@@ -778,46 +785,47 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     }
 
     fun refreshUrl() {
-        scopeNetLife { // 创建作用域
-            val realUrl =
-                "http://yj1211.work:8013/api/live/getRealUrl?platform=$platform&roomId=$roomId"
-            val realUrlData = Get<String>(realUrl)
-            var realUrlResult: JSONObject = JSONObject.parseObject(realUrlData.await()).getJSONObject("data")
-            val urls: LinkedTreeMap<String, String> = getRealUrls(realUrlResult)
-            if (urls != null && urls.size > 0) {
-                val isMobileData = NetworkUtils.isMobileData()
-                if (isMobileData) {
-                    val defaultDefinition = sharedPreferences.getString("default_definition_4G", "原画")
-                    if (urls.containsKey(defaultDefinition)) {
-                        mDefinitionControlView?.setData(urls, defaultDefinition)
-                        onRateChange(urls[defaultDefinition]) //设置视频地址
-                    } else {
-                        for (item in definitionArray) {
-                            if (urls.containsKey(item)) {
-                                mDefinitionControlView?.setData(urls, item)
-                                onRateChange(urls[item]) //设置视频地址
-                                break
-                            }
-                        }
-                    }
-                } else {
-                    val defaultDefinition = sharedPreferences.getString("default_definition_wifi", "原画")
-                    if (urls.containsKey(defaultDefinition)) {
-                        mDefinitionControlView?.setData(urls, defaultDefinition)
-                        onRateChange(urls[defaultDefinition]) //设置视频地址
-                    } else {
-                        for (item in definitionArray) {
-                            if (urls.containsKey(item)) {
-                                mDefinitionControlView?.setData(urls, item)
-                                onRateChange(urls[item])
-                                break
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        viewModel.getRealUrl(platform, roomId)
+//        scopeNetLife { // 创建作用域
+//            val realUrl =
+//                "http://yj1211.work:8013/api/live/getRealUrl?platform=$platform&roomId=$roomId"
+//            val realUrlData = Get<String>(realUrl)
+//            var realUrlResult: JSONObject = JSONObject.parseObject(realUrlData.await()).getJSONObject("data")
+//            val urls: LinkedTreeMap<String, String> = getRealUrls(realUrlResult)
+//            if (urls != null && urls.size > 0) {
+//                val isMobileData = NetworkUtils.isMobileData()
+//                if (isMobileData) {
+//                    val defaultDefinition = sharedPreferences.getString("default_definition_4G", "原画")
+//                    if (urls.containsKey(defaultDefinition)) {
+//                        mDefinitionControlView?.setData(urls, defaultDefinition)
+//                        onRateChange(urls[defaultDefinition]) //设置视频地址
+//                    } else {
+//                        for (item in definitionArray) {
+//                            if (urls.containsKey(item)) {
+//                                mDefinitionControlView?.setData(urls, item)
+//                                onRateChange(urls[item]) //设置视频地址
+//                                break
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    val defaultDefinition = sharedPreferences.getString("default_definition_wifi", "原画")
+//                    if (urls.containsKey(defaultDefinition)) {
+//                        mDefinitionControlView?.setData(urls, defaultDefinition)
+//                        onRateChange(urls[defaultDefinition]) //设置视频地址
+//                    } else {
+//                        for (item in definitionArray) {
+//                            if (urls.containsKey(item)) {
+//                                mDefinitionControlView?.setData(urls, item)
+//                                onRateChange(urls[item])
+//                                break
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            }
+//        }
     }
 
     fun getRealUrls(jsonObject: JSONObject): LinkedTreeMap<String, String>{
