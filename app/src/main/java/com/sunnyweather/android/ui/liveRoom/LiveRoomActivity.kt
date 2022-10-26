@@ -101,6 +101,7 @@ class LiveRoomActivity : AppCompatActivity(), Utils.OnAppStatusChangedListener, 
     }
 
     fun setVideoUrl(url: String?) {
+        Log.i("videoUrl", "Using url: $url")
         if (platform == "bilibili" && url!!.contains(".flv?")) {
             videoView?.setUrl(url, biliRepository.getBilibiliFlvHeaders(roomId))
         } else {
