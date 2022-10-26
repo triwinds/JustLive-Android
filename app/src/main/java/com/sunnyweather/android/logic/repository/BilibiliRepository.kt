@@ -26,7 +26,7 @@ class BilibiliRepository {
         )
     }
 
-    fun getBilibiliRealUrlWithQn(roomId: String, qn: String): String? {
+    fun getBilibiliRealUrlWithQn(roomId: String, qn: String): Map<String, String> {
         val client = OkHttpClient.Builder().build()
         val url =
             "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo".toHttpUrlOrNull()
@@ -48,7 +48,7 @@ class BilibiliRepository {
         if (0 != response.getInteger("code")) {
             Log.e("bilierror",
                 "BILIBILI---获取真实地址异常---roomId：${roomId}, code: ${response.getInteger("code")}")
-            return null
+            return mapOf()
         }
         val streamInfos: JSONArray = response.getJSONObject("data").getJSONObject("playurl_info")
             .getJSONObject("playurl").getJSONArray("stream")
@@ -59,45 +59,45 @@ class BilibiliRepository {
         }
 //        val targetProtocol = if (acceptQn.size == 1) "http_stream" else "http_hls"
 //        val targetFormat = if (acceptQn.size < 2) "flv" else "ts"
-        val targetFormat = "flv"
-        Log.i("biliFormat", "using format: $targetFormat")
-        for (i in 0 until streamInfos.size) {
-            val streamInfo: JSONObject = streamInfos.getJSONObject(i)
-//            if (targetProtocol != streamInfo.getString("protocol_name")) {
-//                continue
-//            }
-            val format = streamInfo.getJSONArray("format")
-            val formatName = format.getJSONObject(0).getString("format_name")
-            if (targetFormat != formatName) {
-                continue
+        val targetFormats = listOf("flv", "ts")
+        val urlData = LinkedHashMap<String, String>()
+        for (targetFormat in targetFormats) {
+            Log.i("biliFormat", "using format: $targetFormat")
+            for (i in 0 until streamInfos.size) {
+                val streamInfo: JSONObject = streamInfos.getJSONObject(i)
+                val format = streamInfo.getJSONArray("format")
+                val formatName = format.getJSONObject(0).getString("format_name")
+                if (targetFormat != formatName) {
+                    continue
+                }
+                val codecInfo = format.getJSONObject(format.size-1).getJSONArray("codec").getJSONObject(0)
+                if (qn != codecInfo.getString("current_qn")) {
+                    Log.e("bilierror",
+                        "BILIBILI---无效的qn---roomId：${roomId}, qn: ${qn}, acceptQn: $acceptQn"
+                    )
+                    break
+                }
+                Log.i("biliCodec", codecInfo.toJSONString())
+                val baseUrl = codecInfo.getString("base_url")
+                val urlInfo = codecInfo.getJSONArray("url_info").getJSONObject(0)
+                val host = urlInfo.getString("host")
+                val extra = urlInfo.getString("extra")
+                Log.i("biliUrl", "format: $formatName, url: ${host + baseUrl + extra}")
+                urlData[formatName] = host + baseUrl + extra
             }
-            val codecInfo = format.getJSONObject(format.size-1).getJSONArray("codec").getJSONObject(0)
-            if (qn != codecInfo.getString("current_qn")) {
-                Log.e("bilierror",
-                    "BILIBILI---无效的qn---roomId：${roomId}, qn: ${qn}, acceptQn: $acceptQn"
-                )
-                break
-            }
-            Log.i("biliCodec", codecInfo.toJSONString())
-            val baseUrl = codecInfo.getString("base_url")
-            val urlInfo = codecInfo.getJSONArray("url_info").getJSONObject(0)
-            val host = urlInfo.getString("host")
-            val extra = urlInfo.getString("extra")
-            Log.i("biliUrl", host + baseUrl + extra)
-            return host + baseUrl + extra
         }
-        return null
+        return urlData
     }
     fun getBilibiliRealUrl(roomId: String): UrlsResponse {
 //        val qnMap = mapOf("OD" to "10000", "HD" to "250")
-        val qnMap = mapOf("OD" to "10000")
-        val data = mutableMapOf<String, String>()
+        val qnMap = mapOf("原画" to "10000")
+        val data = LinkedHashMap<String, String>()
         qnMap.forEach { e ->
             run {
-                e.key
-                val url = getBilibiliRealUrlWithQn(roomId, e.value)
-                if (url != null) {
-                    data[e.key] = url
+                val urlData = getBilibiliRealUrlWithQn(roomId, e.value)
+                data[e.key] = if (urlData.containsKey("flv")) urlData["flv"]!! else urlData["ts"]!!
+                urlData.forEach {(k, v) ->
+                    data[e.key + k] = v
                 }
             }
         }

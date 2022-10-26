@@ -114,20 +114,16 @@ object Repository {
                 "200" -> {
                     val rooms = liveResponse.data
                     val resultRooms = LinkedTreeMap<String, String>()
-                    if (rooms.containsKey("OD")) {
-                        resultRooms["原画"] = rooms["OD"]
-                    }
-                    if (rooms.containsKey("HD")) {
-                        resultRooms["超清"] = rooms["HD"]
-                    }
-                    if (rooms.containsKey("SD")) {
-                        resultRooms["高清"] = rooms["SD"]
-                    }
-                    if (rooms.containsKey("LD")) {
-                        resultRooms["清晰"] = rooms["LD"]
-                    }
-                    if (rooms.containsKey("FD")) {
-                        resultRooms["流畅"] = rooms["FD"]
+                    rooms.forEach {(k, v) ->
+                        val rk = when (k) {
+                            "OD" -> "原画"
+                            "HD" -> "超清"
+                            "SD" -> "高清"
+                            "LD" -> "清晰"
+                            "FD" -> "流畅"
+                            else -> k
+                        }
+                        resultRooms[rk] = v
                     }
                     Result.success(resultRooms)
                 }
