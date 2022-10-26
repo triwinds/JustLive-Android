@@ -19,7 +19,6 @@ import com.sunnyweather.android.R
 import com.sunnyweather.android.logic.model.AreaFollow
 import com.sunnyweather.android.ui.roomList.SpaceItemDecoration
 import kotlinx.android.synthetic.main.fragment_arealist.*
-import java.lang.IllegalArgumentException
 
 class AreaSingleFragment(private val areaList: List<JSONObject>) : Fragment() {
     constructor() : this(ArrayList<JSONObject>())
@@ -38,7 +37,7 @@ class AreaSingleFragment(private val areaList: List<JSONObject>) : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         var cardNum = ScreenUtils.getAppScreenWidth()/ ConvertUtils.dp2px(129F)
         if (cardNum < 2) cardNum = 2
         val layoutManager = GridLayoutManager(context, cardNum)

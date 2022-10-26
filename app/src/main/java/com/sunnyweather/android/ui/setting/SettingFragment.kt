@@ -34,7 +34,7 @@ class SettingFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.setting, rootKey)
         val signaturePreference: SwitchPreferenceCompat? = findPreference("dayNight")
         val autoDark: SwitchPreferenceCompat? = findPreference("autoDark")
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val versionPreferences = findPreference<Preference>("version")
         val aboutPreferences = findPreference<Preference>("about_activity")
         val donatePreferences = findPreference<Preference>("donate")
